@@ -1,8 +1,9 @@
 import { Company, Signal, Stage } from './types';
 
-let idCounter = 0;
-const uid = () => `c_${++idCounter}`;
-const sid = () => `s_${++idCounter}`;
+let companyCounter = 0;
+let signalCounter = 0;
+const uid = () => `co_${++companyCounter}`;
+const sid = () => `s_${++signalCounter}`;
 
 const signalIcons: Record<string, string> = {
   hiring: '👥', funding: '💰', product: '🚀', press: '📰', partnership: '🤝', exec_move: '👤',

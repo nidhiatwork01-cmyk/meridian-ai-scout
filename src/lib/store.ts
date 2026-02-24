@@ -1,31 +1,26 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Company, List, SavedSearch, SearchState, EnrichResult, FilterState } from './types';
+import { Company, List, SavedSearch, SearchState, EnrichResult } from './types';
 import { companies as seedCompanies } from './mock-data';
 
-interface AppState {
-  companies: Company[];
+interface PersistedData {
   lists: List[];
   savedSearches: SavedSearch[];
-  commandPaletteOpen: boolean;
+  companyNotes: Record<string, string>;
+  companyLists: Record<string, string[]>;
+}
 
-  // Lists
+interface AppState extends PersistedData {
+  companies: Company[];
+  commandPaletteOpen: boolean;
   createList: (name: string, description?: string, color?: string) => void;
   deleteList: (id: string) => void;
   addCompanyToList: (companyId: string, listId: string) => void;
   removeCompanyFromList: (companyId: string, listId: string) => void;
-
-  // Saved Searches
   saveSearch: (search: SearchState) => void;
   deleteSearch: (id: string) => void;
-
-  // Notes
   updateNote: (companyId: string, note: string) => void;
-
-  // Enrichment
   updateEnrichment: (companyId: string, result: EnrichResult) => void;
-
-  // UI
   setCommandPaletteOpen: (open: boolean) => void;
 }
 
@@ -36,10 +31,12 @@ export const useStore = create<AppState>()(
     (set) => ({
       companies: seedCompanies,
       lists: [
-        { id: 'list-1', name: 'Top AI Companies', description: 'High-conviction AI infrastructure plays', companyIds: ['c_3', 'c_8', 'c_38', 'c_39'], createdAt: '2024-01-15', color: 'teal' },
-        { id: 'list-2', name: 'Series A Targets', description: 'Companies ready for Series A investment', companyIds: ['c_11', 'c_12', 'c_16'], createdAt: '2024-02-01', color: 'blue' },
+        { id: 'list-1', name: 'Top AI Companies', description: 'High-conviction AI infrastructure plays', companyIds: ['co_3', 'co_8', 'co_38', 'co_39'], createdAt: '2024-01-15', color: 'teal' },
+        { id: 'list-2', name: 'Series A Targets', description: 'Companies ready for Series A investment', companyIds: ['co_11', 'co_12', 'co_16'], createdAt: '2024-02-01', color: 'blue' },
       ],
       savedSearches: [],
+      companyNotes: {},
+      companyLists: {},
       commandPaletteOpen: false,
 
       createList: (name, description = '', color = 'teal') =>
@@ -48,13 +45,7 @@ export const useStore = create<AppState>()(
         })),
 
       deleteList: (id) =>
-        set((s) => ({
-          lists: s.lists.filter((l) => l.id !== id),
-          companies: s.companies.map((c) => ({
-            ...c,
-            savedToLists: c.savedToLists.filter((lid) => lid !== id),
-          })),
-        })),
+        set((s) => ({ lists: s.lists.filter((l) => l.id !== id) })),
 
       addCompanyToList: (companyId, listId) =>
         set((s) => ({
@@ -63,20 +54,12 @@ export const useStore = create<AppState>()(
               ? { ...l, companyIds: [...l.companyIds, companyId] }
               : l
           ),
-          companies: s.companies.map((c) =>
-            c.id === companyId && !c.savedToLists.includes(listId)
-              ? { ...c, savedToLists: [...c.savedToLists, listId] }
-              : c
-          ),
         })),
 
       removeCompanyFromList: (companyId, listId) =>
         set((s) => ({
           lists: s.lists.map((l) =>
             l.id === listId ? { ...l, companyIds: l.companyIds.filter((id) => id !== companyId) } : l
-          ),
-          companies: s.companies.map((c) =>
-            c.id === companyId ? { ...c, savedToLists: c.savedToLists.filter((id) => id !== listId) } : c
           ),
         })),
 
@@ -101,7 +84,7 @@ export const useStore = create<AppState>()(
 
       updateNote: (companyId, note) =>
         set((s) => ({
-          companies: s.companies.map((c) => (c.id === companyId ? { ...c, notes: note } : c)),
+          companyNotes: { ...s.companyNotes, [companyId]: note },
         })),
 
       updateEnrichment: (companyId, result) =>
@@ -112,14 +95,12 @@ export const useStore = create<AppState>()(
       setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
     }),
     {
-      name: 'meridian-store',
+      name: 'meridian-store-v2',
       partialize: (state) => ({
         lists: state.lists,
         savedSearches: state.savedSearches,
-        companies: state.companies.map((c) => ({
-          ...c,
-          // Only persist user data
-        })),
+        companyNotes: state.companyNotes,
+        companyLists: state.companyLists,
       }),
     }
   )

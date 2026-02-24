@@ -12,6 +12,7 @@ export default function CompanyProfile() {
   const navigate = useNavigate();
   const company = useStore((s) => s.companies.find((c) => c.id === id));
   const updateNote = useStore((s) => s.updateNote);
+  const companyNotes = useStore((s) => s.companyNotes);
   const lists = useStore((s) => s.lists);
   const addCompanyToList = useStore((s) => s.addCompanyToList);
   const removeCompanyFromList = useStore((s) => s.removeCompanyFromList);
@@ -30,9 +31,8 @@ export default function CompanyProfile() {
     press: 'text-muted-foreground', partnership: 'text-primary', exec_move: 'text-warning',
   };
 
-  const similarCompanies = useStore((s) =>
-    s.companies.filter((c) => c.id !== company.id && c.sector === company.sector).slice(0, 3)
-  );
+  const allCompanies = useStore((s) => s.companies);
+  const similarCompanies = allCompanies.filter((c) => c.id !== company.id && c.sector === company.sector).slice(0, 3);
 
   return (
     <div className="space-y-6">
@@ -195,7 +195,7 @@ export default function CompanyProfile() {
           {activeTab === 'Notes' && (
             <div className="rounded-lg border border-border bg-card p-5">
               <textarea
-                value={company.notes}
+                value={companyNotes[company.id] || company.notes || ''}
                 onChange={(e) => updateNote(company.id, e.target.value)}
                 placeholder="Add your investment thesis notes, meeting summaries, or follow-up items..."
                 className="w-full min-h-[200px] bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none resize-none leading-relaxed"
