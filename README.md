@@ -19,13 +19,13 @@ Meridian AI Scout is a Vite + React + TypeScript app for venture scouting:
 ## Security Model (API keys)
 
 - API keys are only read on the server (`api/enrich.ts`) via environment variables
-- Frontend never reads `OPENAI_API_KEY`
+- Frontend never reads `GROQ_API_KEY`
 - Add secrets in Vercel Project Settings -> Environment Variables
 
 Required server env:
 
-- `OPENAI_API_KEY`
-- Optional: `OPENAI_MODEL` (default: `gpt-4o-mini`)
+- `GROQ_API_KEY`
+- Optional: `GROQ_MODEL` (default: `llama-3.3-70b-versatile`)
 
 See `.env.example` for local variable names.
 
@@ -45,7 +45,7 @@ npm run build
 ## Deployment (Vercel)
 
 1. Import repo into Vercel.
-2. Set environment variables (`OPENAI_API_KEY`, optional `OPENAI_MODEL`).
+2. Set environment variables (`GROQ_API_KEY`, optional `GROQ_MODEL`).
 3. Use build settings:
    - Install Command: `npm install`
    - Build Command: `npm run build`

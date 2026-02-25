@@ -199,18 +199,18 @@ function parseJsonBlock(content: string): unknown {
   return JSON.parse(trimmed);
 }
 
-async function summarizeWithOpenAI(companyName: string, pages: FetchedPage[]): Promise<EnrichResult | null> {
-  const apiKey = process.env.OPENAI_API_KEY;
+async function summarizeWithGroq(companyName: string, pages: FetchedPage[]): Promise<EnrichResult | null> {
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) return null;
 
   const nowIso = new Date().toISOString();
-  const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+  const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
   const sourceText = pages
     .map((p, i) => `Source ${i + 1}: ${p.url}\n${p.text}`)
     .join('\n\n')
     .slice(0, MAX_COMBINED_CHARS);
 
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
       authorization: `Bearer ${apiKey}`,
@@ -240,60 +240,19 @@ async function summarizeWithOpenAI(companyName: string, pages: FetchedPage[]): P
           ].join('\n'),
         },
       ],
-      response_format: {
-        type: 'json_schema',
-        json_schema: {
-          name: 'enrichment_payload',
-          strict: true,
-          schema: {
-            type: 'object',
-            additionalProperties: false,
-            required: ['summary', 'bullets', 'keywords', 'signals'],
-            properties: {
-              summary: { type: 'string' },
-              bullets: {
-                type: 'array',
-                minItems: 3,
-                maxItems: 5,
-                items: { type: 'string' },
-              },
-              keywords: {
-                type: 'array',
-                minItems: 5,
-                maxItems: 8,
-                items: { type: 'string' },
-              },
-              signals: {
-                type: 'array',
-                minItems: 2,
-                maxItems: 5,
-                items: {
-                  type: 'object',
-                  additionalProperties: false,
-                  required: ['label', 'description', 'type'],
-                  properties: {
-                    label: { type: 'string' },
-                    description: { type: 'string' },
-                    type: { type: 'string', enum: ['positive', 'neutral', 'warning'] },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+      response_format: { type: 'json_object' },
     }),
   });
 
   if (!res.ok) {
     const details = await res.text();
-    throw new Error(`OpenAI error (${res.status}): ${details}`);
+    throw new Error(`Groq error (${res.status}): ${details}`);
   }
 
   const payload = await res.json();
   const content = payload?.choices?.[0]?.message?.content;
   if (!content || typeof content !== 'string') {
-    throw new Error('OpenAI response did not include JSON content');
+    throw new Error('Groq response did not include JSON content');
   }
 
   const parsed = parseJsonBlock(content) as Omit<EnrichResult, 'sources' | 'enrichedAt'>;
@@ -324,7 +283,7 @@ export default async function handler(req: any, res: any) {
     }
 
     try {
-      const aiResult = await summarizeWithOpenAI(companyName, pages);
+      const aiResult = await summarizeWithGroq(companyName, pages);
       if (aiResult) return res.status(200).json(aiResult);
     } catch (err) {
       console.error('AI enrichment failed, returning heuristic fallback:', err);
