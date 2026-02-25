@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Download, BookMarked } from 'lucide-react';
+import { Plus, Trash2, Download, BookMarked, FileJson } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
@@ -41,6 +41,27 @@ export default function Lists() {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `${list.name}.csv`;
+    a.click();
+  };
+
+  const exportJSON = (listId: string) => {
+    const list = lists.find((l) => l.id === listId);
+    if (!list) return;
+    const items = companies.filter((c) => list.companyIds.includes(c.id));
+    const payload = {
+      list: {
+        id: list.id,
+        name: list.name,
+        description: list.description,
+        createdAt: list.createdAt,
+      },
+      exportedAt: new Date().toISOString(),
+      companies: items,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${list.name}.json`;
     a.click();
   };
 
@@ -109,6 +130,7 @@ export default function Lists() {
                   <div className="flex items-center gap-1">
                     <span className="text-xs bg-secondary rounded-full px-2 py-0.5 text-muted-foreground">{listCompanies.length}</span>
                     <button onClick={() => exportCSV(list.id)} className="p-1 rounded hover:bg-secondary text-muted-foreground"><Download className="h-3.5 w-3.5" /></button>
+                    <button onClick={() => exportJSON(list.id)} className="p-1 rounded hover:bg-secondary text-muted-foreground"><FileJson className="h-3.5 w-3.5" /></button>
                     <button onClick={() => deleteList(list.id)} className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
                   </div>
                 </div>

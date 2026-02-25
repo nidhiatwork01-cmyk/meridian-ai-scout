@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Save, LayoutList, LayoutGrid } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { CompanyFilters } from '@/components/companies/CompanyFilters';
@@ -22,8 +22,11 @@ const defaultFilters: FilterState = {
 
 export default function Companies() {
   const companies = useStore((s) => s.companies);
+  const savedSearches = useStore((s) => s.savedSearches);
   const saveSearch = useStore((s) => s.saveSearch);
+  const runSavedSearch = useStore((s) => s.runSavedSearch);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
@@ -63,6 +66,31 @@ export default function Companies() {
       description: `"${name}" saved with ${filtered.length} result${filtered.length === 1 ? '' : 's'}.`,
     });
   };
+
+  useEffect(() => {
+    const savedId = searchParams.get('saved');
+    if (!savedId) return;
+
+    const matched = savedSearches.find((ss) => ss.id === savedId);
+    if (matched) {
+      setFilters(matched.filters);
+      setViewMode('table');
+      runSavedSearch(savedId);
+      toast({
+        title: 'Saved search loaded',
+        description: `Applied "${matched.name}".`,
+      });
+    } else {
+      toast({
+        title: 'Saved search not found',
+        description: 'The selected saved search no longer exists.',
+      });
+    }
+
+    const next = new URLSearchParams(searchParams);
+    next.delete('saved');
+    setSearchParams(next, { replace: true });
+  }, [runSavedSearch, savedSearches, searchParams, setSearchParams]);
 
   return (
     <div className="space-y-6">

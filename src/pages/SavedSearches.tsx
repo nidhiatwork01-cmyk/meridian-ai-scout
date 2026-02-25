@@ -44,7 +44,7 @@ export default function SavedSearches() {
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">{ss.resultCount} results</span>
                 <button
-                  onClick={() => navigate('/companies')}
+                  onClick={() => navigate(`/companies?saved=${encodeURIComponent(ss.id)}`)}
                   className="flex items-center gap-1 text-xs text-primary hover:underline"
                 >
                   <Play className="h-3 w-3" /> Run Search

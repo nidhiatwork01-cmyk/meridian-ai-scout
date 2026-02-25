@@ -2,9 +2,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '@/lib/store';
 import { StageBadge } from '@/components/companies/StageBadge';
 import { CompanyLogo } from '@/components/companies/CompanyLogo';
-import { ArrowLeft, ExternalLink, Globe, Users, Calendar, MapPin, Banknote, Compass, CheckCircle2, AlertTriangle, MinusCircle } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Globe, Users, Calendar, MapPin, Compass, CheckCircle2, AlertTriangle, MinusCircle } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { EnrichResult } from '@/lib/types';
 
 const tabs = ['Overview', 'Signals', 'Enrichment', 'Notes'] as const;
 
@@ -13,11 +14,14 @@ export default function CompanyProfile() {
   const navigate = useNavigate();
   const company = useStore((s) => s.companies.find((c) => c.id === id));
   const updateNote = useStore((s) => s.updateNote);
+  const updateEnrichment = useStore((s) => s.updateEnrichment);
   const companyNotes = useStore((s) => s.companyNotes);
   const lists = useStore((s) => s.lists);
   const addCompanyToList = useStore((s) => s.addCompanyToList);
   const removeCompanyFromList = useStore((s) => s.removeCompanyFromList);
   const [activeTab, setActiveTab] = useState<typeof tabs[number]>('Overview');
+  const [enriching, setEnriching] = useState(false);
+  const [enrichError, setEnrichError] = useState<string | null>(null);
 
   if (!company) {
     return (
@@ -31,9 +35,49 @@ export default function CompanyProfile() {
     hiring: 'text-info', funding: 'text-success', product: 'text-stage-preseed',
     press: 'text-muted-foreground', partnership: 'text-primary', exec_move: 'text-warning',
   };
+  const derivedSignalStyles: Record<EnrichResult['signals'][number]['type'], { text: string; bg: string; icon: JSX.Element }> = {
+    positive: { text: 'text-success', bg: 'bg-success/10', icon: <CheckCircle2 className="h-4 w-4" /> },
+    neutral: { text: 'text-info', bg: 'bg-info/10', icon: <MinusCircle className="h-4 w-4" /> },
+    warning: { text: 'text-warning', bg: 'bg-warning/10', icon: <AlertTriangle className="h-4 w-4" /> },
+  };
 
   const allCompanies = useStore((s) => s.companies);
   const similarCompanies = allCompanies.filter((c) => c.id !== company.id && c.sector === company.sector).slice(0, 3);
+  const enriched = company.enriched;
+
+  const handleEnrich = async () => {
+    setEnrichError(null);
+    setEnriching(true);
+    try {
+      const resp = await fetch('/api/enrich', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          companyName: company.name,
+          website: company.website,
+        }),
+      });
+
+      const raw = await resp.text();
+      let payload: any = null;
+      try {
+        payload = raw ? JSON.parse(raw) : null;
+      } catch {
+        payload = null;
+      }
+      if (!resp.ok) {
+        if (resp.status === 404) {
+          throw new Error('Enrichment API route not found. Deploy with Vercel functions enabled.');
+        }
+        throw new Error(payload?.error || 'Enrichment request failed');
+      }
+      updateEnrichment(company.id, payload as EnrichResult);
+    } catch (err: any) {
+      setEnrichError(err?.message || 'Unable to enrich this company right now.');
+    } finally {
+      setEnriching(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -180,16 +224,110 @@ export default function CompanyProfile() {
           )}
 
           {activeTab === 'Enrichment' && (
-            <div className="rounded-lg border border-border bg-card p-8 text-center">
-              <Compass className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">Enrich this company</h3>
-              <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-                Fetch public website, about page, blog, and careers page to extract structured insights with AI.
-              </p>
-              <button className="px-6 py-2.5 rounded-md bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity">
-                🔍 Enrich Now
-              </button>
-              <p className="text-xs text-muted-foreground mt-3">Requires backend connection</p>
+            <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground">Live Enrichment</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Fetches public website content and derives structured signals server-side.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleEnrich}
+                    disabled={enriching}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-60"
+                  >
+                    <Compass className={cn('h-4 w-4', enriching && 'animate-spin')} />
+                    {enriching ? 'Enriching...' : enriched ? 'Refresh Enrichment' : 'Enrich Now'}
+                  </button>
+                </div>
+                {enrichError && (
+                  <p className="text-sm text-destructive mt-3">{enrichError}</p>
+                )}
+                {enriched?.enrichedAt && (
+                  <p className="text-xs text-muted-foreground mt-3">
+                    Last enriched at {new Date(enriched.enrichedAt).toLocaleString()}
+                  </p>
+                )}
+              </div>
+
+              {enriched ? (
+                <>
+                  <div className="rounded-lg border border-border bg-card p-5">
+                    <h4 className="text-sm font-semibold text-foreground mb-2">Summary</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{enriched.summary}</p>
+                  </div>
+
+                  <div className="rounded-lg border border-border bg-card p-5">
+                    <h4 className="text-sm font-semibold text-foreground mb-3">Key Findings</h4>
+                    <ul className="space-y-2">
+                      {enriched.bullets.map((bullet, idx) => (
+                        <li key={`${idx}-${bullet}`} className="text-sm text-muted-foreground flex gap-2">
+                          <span className="text-primary mt-0.5">•</span>
+                          <span>{bullet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="rounded-lg border border-border bg-card p-5">
+                    <h4 className="text-sm font-semibold text-foreground mb-3">Keywords</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {enriched.keywords.map((keyword) => (
+                        <span key={keyword} className="px-2.5 py-1 rounded-md bg-secondary text-xs text-foreground">
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-border bg-card p-5">
+                    <h4 className="text-sm font-semibold text-foreground mb-3">Derived Signals</h4>
+                    <div className="space-y-2">
+                      {enriched.signals.map((signal, idx) => {
+                        const style = derivedSignalStyles[signal.type];
+                        return (
+                          <div key={`${idx}-${signal.label}`} className={cn('rounded-md border border-border p-3', style.bg)}>
+                            <div className={cn('flex items-center gap-2 text-sm font-medium', style.text)}>
+                              {style.icon}
+                              <span>{signal.label}</span>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">{signal.description}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-border bg-card p-5">
+                    <h4 className="text-sm font-semibold text-foreground mb-3">Sources</h4>
+                    <div className="space-y-2">
+                      {enriched.sources.map((source, idx) => (
+                        <a
+                          key={`${idx}-${source.url}`}
+                          href={source.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block rounded-md border border-border p-3 hover:bg-secondary/40 transition-colors"
+                        >
+                          <p className="text-sm text-primary truncate">{source.url}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Fetched {new Date(source.fetchedAt).toLocaleString()}
+                          </p>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="rounded-lg border border-border bg-card p-8 text-center">
+                  <Compass className="h-10 w-10 text-primary mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground">
+                    No enrichment yet. Run enrichment to populate this section with live signals and sources.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

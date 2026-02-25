@@ -18,6 +18,7 @@ interface AppState extends PersistedData {
   addCompanyToList: (companyId: string, listId: string) => void;
   removeCompanyFromList: (companyId: string, listId: string) => void;
   saveSearch: (search: SearchState) => void;
+  runSavedSearch: (id: string) => void;
   deleteSearch: (id: string) => void;
   updateNote: (companyId: string, note: string) => void;
   updateEnrichment: (companyId: string, result: EnrichResult) => void;
@@ -77,6 +78,13 @@ export const useStore = create<AppState>()(
               lastRunAt: new Date().toISOString(),
             },
           ],
+        })),
+
+      runSavedSearch: (id) =>
+        set((s) => ({
+          savedSearches: s.savedSearches.map((ss) =>
+            ss.id === id ? { ...ss, lastRunAt: new Date().toISOString() } : ss
+          ),
         })),
 
       deleteSearch: (id) =>
