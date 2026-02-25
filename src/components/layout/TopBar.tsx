@@ -1,6 +1,8 @@
-import { Search, Bell, Sun, Moon } from 'lucide-react';
+import { Search, Sun, Moon } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { useTheme } from '@/hooks/use-theme';
+import { NotificationsDropdown } from './NotificationsDropdown';
+import { UserProfileMenu } from './UserProfileMenu';
 
 export function TopBar() {
   const setCommandPaletteOpen = useStore((s) => s.setCommandPaletteOpen);
@@ -30,13 +32,8 @@ export function TopBar() {
       >
         {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       </button>
-      <button className="p-2 rounded-md hover:bg-secondary text-muted-foreground relative">
-        <Bell className="h-4 w-4" />
-        <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
-      </button>
-      <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold text-secondary-foreground">
-        VC
-      </div>
+      <NotificationsDropdown />
+      <UserProfileMenu />
     </header>
   );
 }
