@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { label: 'Discover', icon: Telescope, path: '/companies', shortcut: 'G C' },
-  { label: 'Lists', icon: BookMarked, path: '/lists', shortcut: 'G L' },
-  { label: 'Saved Searches', icon: Search, path: '/saved', shortcut: 'G S' },
-  { label: 'Settings', icon: Settings, path: '/settings', shortcut: 'G ,' },
+  { label: 'Discover', icon: Telescope, path: '/companies' },
+  { label: 'Lists', icon: BookMarked, path: '/lists' },
+  { label: 'Saved Searches', icon: Search, path: '/saved' },
+  { label: 'Settings', icon: Settings, path: '/settings' },
 ];
 
 export function AppSidebar() {
@@ -55,9 +55,6 @@ export function AppSidebar() {
               {!collapsed && (
                 <>
                   <span>{item.label}</span>
-                  <span className="ml-auto text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity font-mono">
-                    {item.shortcut}
-                  </span>
                 </>
               )}
             </NavLink>
