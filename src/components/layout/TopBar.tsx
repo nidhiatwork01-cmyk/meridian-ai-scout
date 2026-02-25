@@ -1,8 +1,10 @@
-import { Search, Bell } from 'lucide-react';
+import { Search, Bell, Sun, Moon } from 'lucide-react';
 import { useStore } from '@/lib/store';
+import { useTheme } from '@/hooks/use-theme';
 
 export function TopBar() {
   const setCommandPaletteOpen = useStore((s) => s.setCommandPaletteOpen);
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <header className="sticky top-0 z-20 h-14 border-b border-border bg-background/80 backdrop-blur-sm flex items-center px-6 gap-4">
@@ -21,6 +23,13 @@ export function TopBar() {
       <div className="flex-1" />
 
       {/* Right actions */}
+      <button
+        onClick={toggleTheme}
+        className="p-2 rounded-md hover:bg-secondary text-muted-foreground transition-colors"
+        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+      >
+        {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      </button>
       <button className="p-2 rounded-md hover:bg-secondary text-muted-foreground relative">
         <Bell className="h-4 w-4" />
         <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
