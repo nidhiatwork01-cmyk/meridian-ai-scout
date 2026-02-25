@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '@/lib/store';
 import { StageBadge } from '@/components/companies/StageBadge';
+import { CompanyLogo } from '@/components/companies/CompanyLogo';
 import { ArrowLeft, ExternalLink, Globe, Users, Calendar, MapPin, Banknote, Compass, CheckCircle2, AlertTriangle, MinusCircle } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -47,7 +48,7 @@ export default function CompanyProfile() {
           {/* Hero */}
           <div className="rounded-lg border border-border bg-card p-6">
             <div className="flex items-start gap-4">
-              <img src={company.logo} alt="" className="h-16 w-16 rounded-lg bg-secondary object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              <CompanyLogo name={company.name} logo={company.logo} size="lg" />
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-foreground">{company.name}</h1>
                 <p className="text-muted-foreground mt-0.5">{company.tagline}</p>
@@ -258,7 +259,7 @@ export default function CompanyProfile() {
                   onClick={() => navigate(`/companies/${sc.id}`)}
                   className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-secondary/30 transition-colors text-left"
                 >
-                  <img src={sc.logo} alt="" className="h-6 w-6 rounded bg-secondary object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  <CompanyLogo name={sc.name} logo={sc.logo} size="sm" />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-foreground truncate">{sc.name}</p>
                     <p className="text-xs text-muted-foreground">{sc.stage}</p>

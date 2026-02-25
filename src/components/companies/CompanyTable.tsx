@@ -12,6 +12,7 @@ import {
 import { ArrowUpDown, MoreHorizontal, ExternalLink, BookMarked } from 'lucide-react';
 import { Company } from '@/lib/types';
 import { StageBadge } from './StageBadge';
+import { CompanyLogo } from './CompanyLogo';
 import { cn } from '@/lib/utils';
 
 const col = createColumnHelper<Company>();
@@ -26,15 +27,7 @@ export function CompanyTable({ data }: { data: Company[] }) {
         header: 'Company',
         cell: ({ row }) => (
           <div className="flex items-center gap-3 min-w-[200px]">
-            <img
-              src={row.original.logo}
-              alt=""
-              className="h-8 w-8 rounded bg-secondary object-contain shrink-0"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = '';
-                (e.target as HTMLImageElement).className = 'h-8 w-8 rounded bg-secondary shrink-0';
-              }}
-            />
+            <CompanyLogo name={row.original.name} logo={row.original.logo} size="md" />
             <div className="min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{row.original.name}</p>
               <p className="text-xs text-muted-foreground truncate">{row.original.tagline}</p>
