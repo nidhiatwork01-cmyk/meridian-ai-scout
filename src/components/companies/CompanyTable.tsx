@@ -9,11 +9,17 @@ import {
   createColumnHelper,
   SortingState,
 } from '@tanstack/react-table';
-import { ArrowUpDown, MoreHorizontal, ExternalLink, BookMarked } from 'lucide-react';
+import { ArrowUpDown, MoreHorizontal, ExternalLink } from 'lucide-react';
 import { Company } from '@/lib/types';
 import { StageBadge } from './StageBadge';
 import { CompanyLogo } from './CompanyLogo';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const col = createColumnHelper<Company>();
 
@@ -83,16 +89,30 @@ export function CompanyTable({ data }: { data: Company[] }) {
       col.display({
         id: 'actions',
         cell: ({ row }) => (
-          <button
-            onClick={(e) => { e.stopPropagation(); }}
-            className="p-1 rounded hover:bg-secondary text-muted-foreground"
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                onClick={(e) => e.stopPropagation()}
+                className="p-1 rounded hover:bg-secondary text-muted-foreground"
+                aria-label={`Actions for ${row.original.name}`}
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => navigate(`/companies/${row.original.id}`)}>
+                Open Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => window.open(row.original.website, '_blank', 'noopener,noreferrer')}>
+                <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                Open Website
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ),
       }),
     ],
-    []
+    [navigate]
   );
 
   const table = useReactTable({
@@ -103,7 +123,7 @@ export function CompanyTable({ data }: { data: Company[] }) {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 20 } },
+    initialState: { pagination: { pageSize: 10 } },
   });
 
   return (
