@@ -1,6 +1,5 @@
-import { Telescope, BookMarked, Search, Settings, Compass, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Telescope, BookMarked, Search, Settings, Compass, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -10,25 +9,41 @@ const navItems = [
   { label: 'Settings', icon: Settings, path: '/settings' },
 ];
 
-export function AppSidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+interface AppSidebarProps {
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  mobileOpen: boolean;
+  onCloseMobile: () => void;
+}
+
+export function AppSidebar({ collapsed, onToggleCollapsed, mobileOpen, onCloseMobile }: AppSidebarProps) {
   const location = useLocation();
+  const expanded = mobileOpen || !collapsed;
 
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col z-30 transition-all duration-200',
-        collapsed ? 'w-16' : 'w-60'
+        'fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col z-30 transition-[width,transform] duration-200',
+        'w-60',
+        collapsed ? 'md:w-16' : 'md:w-60',
+        mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       )}
     >
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 h-14 border-b border-sidebar-border shrink-0">
         <Compass className="h-5 w-5 text-primary shrink-0" />
-        {!collapsed && <span className="text-foreground font-semibold text-lg tracking-tight">Meridian</span>}
+        {expanded && <span className="text-foreground font-semibold text-lg tracking-tight">Meridian</span>}
+        <button
+          onClick={onCloseMobile}
+          className="ml-auto p-1 rounded hover:bg-sidebar-accent text-sidebar-foreground md:hidden"
+          aria-label="Close menu"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
       {/* Thesis badge */}
-      {!collapsed && (
+      {expanded && (
         <div className="px-4 py-3">
           <div className="rounded-md bg-teal-muted px-3 py-1.5 text-xs text-primary font-medium">
             Thesis: B2B SaaS · AI · Dev Tools
@@ -44,6 +59,7 @@ export function AppSidebar() {
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={onCloseMobile}
               className={cn(
                 'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors group relative',
                 active
@@ -52,7 +68,7 @@ export function AppSidebar() {
               )}
             >
               <item.icon className={cn('h-4 w-4 shrink-0', active && 'text-primary')} />
-              {!collapsed && (
+              {expanded && (
                 <>
                   <span>{item.label}</span>
                 </>
@@ -67,15 +83,16 @@ export function AppSidebar() {
         <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-xs font-semibold text-secondary-foreground shrink-0">
           VC
         </div>
-        {!collapsed && (
+        {expanded && (
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground truncate">Fund Manager</p>
             <p className="text-xs text-primary">Pro Plan</p>
           </div>
         )}
         <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="p-1 rounded hover:bg-sidebar-accent text-sidebar-foreground shrink-0"
+          onClick={onToggleCollapsed}
+          className="hidden md:inline-flex p-1 rounded hover:bg-sidebar-accent text-sidebar-foreground shrink-0"
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>

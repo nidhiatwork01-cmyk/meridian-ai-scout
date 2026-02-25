@@ -33,7 +33,7 @@ export function UserProfileMenu() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-64 rounded-lg border border-border bg-popover shadow-xl z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-[min(16rem,calc(100vw-1rem))] rounded-lg border border-border bg-popover shadow-xl z-50 overflow-hidden">
           {/* User info */}
           <div className="px-4 py-3 border-b border-border">
             <p className="text-sm font-semibold text-foreground">Alex Morgan</p>

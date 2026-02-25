@@ -33,7 +33,7 @@ export function CompanyFilters({ filters, onChange }: Props) {
   return (
     <div className="space-y-3">
       {/* Search */}
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
@@ -47,7 +47,7 @@ export function CompanyFilters({ filters, onChange }: Props) {
         <button
           onClick={() => setShowMore(!showMore)}
           className={cn(
-            'flex items-center gap-2 px-3 h-9 rounded-md border text-sm font-medium transition-colors',
+            'flex items-center justify-center sm:justify-start gap-2 px-3 h-9 rounded-md border text-sm font-medium transition-colors',
             showMore ? 'bg-primary text-primary-foreground border-primary' : 'border-border bg-secondary/50 text-muted-foreground hover:text-foreground'
           )}
         >

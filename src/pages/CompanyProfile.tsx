@@ -47,7 +47,7 @@ export default function CompanyProfile() {
         <div className="lg:col-span-2 space-y-6">
           {/* Hero */}
           <div className="rounded-lg border border-border bg-card p-6">
-            <div className="flex items-start gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4">
               <CompanyLogo name={company.name} logo={company.logo} size="lg" />
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-foreground">{company.name}</h1>
@@ -64,7 +64,7 @@ export default function CompanyProfile() {
                   </a>
                 </div>
               </div>
-              <div className="text-center shrink-0">
+              <div className="text-center shrink-0 self-start sm:self-auto">
                 <div className="relative h-16 w-16">
                   <svg viewBox="0 0 36 36" className="h-16 w-16 -rotate-90">
                     <circle cx="18" cy="18" r="15.9" fill="none" stroke="hsl(var(--secondary))" strokeWidth="2.5" />
@@ -78,13 +78,13 @@ export default function CompanyProfile() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 border-b border-border">
+          <div className="flex gap-1 border-b border-border overflow-x-auto">
             {tabs.map((t) => (
               <button
                 key={t}
                 onClick={() => setActiveTab(t)}
                 className={cn(
-                  'px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px',
+                  'px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap',
                   activeTab === t ? 'text-primary border-primary' : 'text-muted-foreground border-transparent hover:text-foreground'
                 )}
               >
@@ -102,7 +102,7 @@ export default function CompanyProfile() {
               </div>
               <div className="rounded-lg border border-border bg-card p-5">
                 <h3 className="text-sm font-semibold text-foreground mb-3">Founders</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {company.founders.map((f) => (
                     <div key={f.name} className="flex items-center gap-3 p-3 rounded-md bg-secondary/30">
                       <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center text-sm font-semibold text-primary">
@@ -118,7 +118,7 @@ export default function CompanyProfile() {
               </div>
               <div className="rounded-lg border border-border bg-card p-5">
                 <h3 className="text-sm font-semibold text-foreground mb-3">Financials</h3>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <p className="text-xs text-muted-foreground">Total Raised</p>
                     <p className="text-lg font-semibold text-foreground">{company.totalRaised}</p>
